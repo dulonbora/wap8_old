@@ -1,0 +1,36 @@
+
+RewriteEngine On
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-l
+
+RewriteRule ^blog.html$ blog.php
+RewriteRule ^sms.html$ sms.php
+RewriteRule ^assamese-songs.html$ songs.php
+RewriteRule ^assamese-videos.html$ video.php
+RewriteRule ^assamese-upcomming.html$ upcomming.php
+RewriteRule ^file/(.+)/(.+)/(.+).html$ file.php?i=$1&aname=$2&name=$3
+RewriteRule ^files/(.+)/(.+).html$ files.php?i=$1&name=$2
+RewriteRule ^video/(.+)/(.+).html$ viewvideo.php?i=$1&name=$2
+RewriteRule ^assamese-songs/(.+).html$ songs.php?page=$1
+RewriteRule ^assamese-songs-category/(.+)/(.+).html$ scat.php?i=$1&name=$2
+RewriteRule ^assamese-songs-category/(.+)/(.+)/(.+)$ scat.php?i=$1&page=$2&name=$3
+RewriteRule ^singer/(.+)/(.+).html$ artist.php?i=$1&name=$2
+RewriteRule ^singer/(.+)/(.+)/(.+)$ artist.php?i=$1&page=$2&name=$3
+RewriteRule ^view/(.+)/(.+).html$ blogview.php?i=$1&page=$2&name=$3
+RewriteRule ^view/(.+)/(.+)/(.+)$ blogview.php?i=$1&page=$2&name=$3
+RewriteRule ^search/(.+)$ search.php?q=$1
+
+
+  
+ErrorDocument 402 /index.php
+ErrorDocument 403 /index.php
+ErrorDocument 400 /index.php
+ErrorDocument 404 /index.php
+ErrorDocument 500 /index.php
+
+
+
+
+

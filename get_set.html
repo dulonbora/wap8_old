@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/app.v1.css">
+        <script type="text/javascript" src="js/jquery-1.9.1.min.js"></script>
+        <script type="text/javascript" src="bootstrap-3.3.6/dist/js/bootstrap.min.js"></script>        
+        <link rel="stylesheet" href="css/Colors.css">
+
+
+        <script type="text/javascript">
+            var _gaq = _gaq || [];
+            _gaq.push(['_setAccount', 'UA-18938202-3']);
+            _gaq.push(['_gat._anonymizeIp']);
+            _gaq.push(['_trackPageview']);
+
+            (function () {
+                var ga = document.createElement('script');
+                ga.type = 'text/javascript';
+                ga.async = true;
+                ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ga, s);
+            })();
+
+            SyntaxHighlighter.defaults['gutter'] = false;
+            SyntaxHighlighter.defaults['tab-size'] = 2;
+        </script>
+
+    </head>
+
+    <body>
+        
+        <div class="container-fluid" style="background: #d9edf7">
+            <h1 class="text-center">PHP GETTER-SETTER GENERATOR</h1>
+        </div>
+        
+        <div class="container">
+            <div class="row">
+                <form action="" method="post" id="SGForm" role="form">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <h3>
+                                <label for="SGFormInput">Properties goes here</label>                            
+                            </h3>
+                            <textarea class="form-control" id="SGFormInput" style="height: 300px">foo</textarea>
+                        </div>
+                        <div class="col-sm-6">
+                            <h3>
+                                <label for="SGFormResult">Output</label>
+                            </h3>
+                            <textarea class="form-control" id="SGFormResult"  style="height: 300px">
+</textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12" style="text-align: center; margin:50px">
+                            <input id="SGFormGenerateButton" type="button" value="Generate setters and getters" class="btn btn-primary"
+                                   onclick="SetterGetter.generate();" /> 
+                        </div></div>
+                </form>
+            </div>          
+
+            <div class="row">
+<hr/>                
+                <div class="page-header"><h3>Options</h3></div>
+                <div class="col-sm-3">
+                    <label for="SGFormLang">Language:</label>
+                    <select class="form-control" id="SGFormLang" onchange="SetterGetter.changeExample()">
+                        <option value="1">PHP</option>
+                        <option value="3">JavaScript</option>
+                        <option value="2">C#</option>
+                        <option value="4">C++</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label for="SGFormType">Format mode:</label>
+                    <select class="form-control" id="SGFormType">
+                        <option value="1">CamelCase</option>
+                        <option value="2">Underscore</option>
+                        <option value="3">Pascal</option>
+                    </select>
+                </div>
+                <div class="col-sm-3">
+                    <label for="SGFormDefType">Default type:</label>
+                    <input class="form-control" type="text" id="SGFormDefType" value="string" />
+                </div>
+                <div class="col-sm-3">
+                    <label for="SGFormMode">Mode:</label>
+                    <select class="form-control" id="SGFormMode">
+                        <option value="1">Dynamic</option>
+                        <option value="2">Static</option>
+                    </select>
+                </div>
+            </div><div class="row">
+                <div class="col-sm-3">
+                    <label for="SGFormAccess">Default access level:</label>
+                    <select class="form-control" id="SGFormAccess">
+                                        <option value="pri">Private</option>
+                                        <option value="pro">Protected</option>
+                                    </select>
+                </div>          
+
+                <div class="col-sm-3">
+                    <label for="SGFormPropPosition">Property position:</label>
+                    <select class="form-control" id="SGFormPropPosition">
+                                        <option value="1">Seperate</option>
+                                        <option value="2">Above</option>
+                                        <option value="3">Below</option>
+                                    </select>
+                </div>
+            </div>
+</div>
+        <script type="text/javascript">
+            SetterGetter = {
+                /* langs */
+                LANG_PHP: 1,
+                LANG_CSHARP: 2,
+                LANG_JS: 3,
+                LANG_CPLUSPLUS: 4,
+                /* types */
+                TYPE_CAMEL: 1,
+                TYPE_UNDER: 2,
+                TYPE_PASCAL: 3,
+                /* modes */
+                MODE_DYNAMIC: 1,
+                MODE_STATIC: 2,
+                /* access levels */
+                ACCESS_PRO: 'pro',
+                ACCESS_PRI: 'pri',
+                /* prop positions */
+                PROP_SEPERATE: 1,
+                PROP_ABOVE: 2,
+                PROP_BELOW: 3,
+                /* vars */
+                isExample: true,
+                generate: function ()
+                {
+                    var type = parseInt(SG_CurType());
+                    var lang = parseInt(SG_CurLang());
+                    var proppos = parseInt(SG_CurPropPosition());
+
+                    var props = SG_GetInp().value.split("\n");
+                    var len = props.length;
+                    var arr = []; // usually contains the setters and getters
+                    var arr2 = [];
+                    var arr3 = [];
+                    switch (lang)
+                    {
+                        case this.LANG_CPLUSPLUS:
+                            arr[0] = "public:\r\n";
+                            arr2[0] = "private:\r\n";
+                            arr3[0] = "protected:\r\n";
+                            break;
+                    }
+
+                    for (var i = 0; i < len; i++)
+                    {
+                        var c = props[i];
+                        c = c.replace(/^\s+|\s+$/g, '');
+
+                        var args = c.split('|');
+                        var name = args[0];
+
+                        var f = "";
+                        var fargs = [];
+
+                        /**
+                         * NOTE:
+                         *
+                         * To synchronize the argument array and the format arguments, we use shift() on the
+                         * argument array before formatting. This removes the first item from the array.
+                         * 
+                         * Thus for format argument %1$s you can assign a value to args[1] = "foo" instead of
+                         * args[0] = "foo"
+                         */
+
+                        switch (lang)
+                        {
+                            case this.LANG_PHP:
+                                var rf = "function %4$s%1$s($%2$s) { $this->%3$s = $%2$s; }\r\n" +
+                                        "function %5$s%1$s() { return $this->%3$s; }\r\n";
+
+                                switch (proppos)
+                                {
+                                    case this.PROP_SEPERATE:
+                                        f = rf;
+                                        break;
+                                    case this.PROP_ABOVE:
+                                        f = "%6$s $%3$s;\r\n" + rf;
+                                        break;
+                                    case this.PROP_BELOW:
+                                        f = rf + "%6$s $%3$s;\r\n";
+                                        break;
+                                }
+
+                                var access = args[1] != undefined && args[1] != '' ? args[1] : SG_CurAccess();
+                                var varName = args[2] != undefined && args[2] != '' ? args[2] : name;
+
+                                fargs = [null, name, name, varName, 'set', 'get', access];
+
+                                switch (access)
+                                {
+                                    case this.ACCESS_PRO:
+                                        fargs[6] = 'protected';
+                                        break;
+                                    case this.ACCESS_PRI:
+                                        fargs[6] = 'private';
+                                        break;
+                                    default:
+                                        fargs[6] = 'private';
+                                        break;
+                                }
+
+                                switch (proppos)
+                                {
+                                    case this.PROP_SEPERATE:
+                                        arr2[arr2.length] = fargs[6] + " $" + fargs[3] + ";\r\n";
+                                        break;
+                                }
+
+                                switch (type)
+                                {
+                                    case this.TYPE_CAMEL:
+                                        fargs[1] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        break;
+
+                                    case this.TYPE_UNDER:
+                                        fargs[4] = "set_";
+                                        fargs[5] = "get_";
+                                        break;
+
+                                    case this.TYPE_PASCAL:
+                                        fargs[1] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        fargs[4] = "Set";
+                                        fargs[5] = "Get";
+                                        break;
+                                }
+                                break;
+
+                            case this.LANG_JS:
+                                var mode = parseInt(SG_CurMode());
+
+                                var rf = "";
+                                var pf = "";
+
+                                var varName = args[1] != undefined && args[1] != '' ? args[1] : name;
+
+                                switch (mode)
+                                {
+                                    case this.MODE_DYNAMIC:
+                                        rf = "this.%3$s%2$s = function(%1$s) { this.%5$s = %1$s; } \r\n" +
+                                                "this.%4$s%2$s = function() { return this.%5$s; } \r\n";
+                                        pf = vsprintf("this.%1$s = null;\r\n", [varName]);
+                                        break;
+                                    case this.MODE_STATIC:
+                                        rf = "%3$s%2$s: function(%1$s) { this.%5$s = %1$s; }, \r\n" +
+                                                "%4$s%2$s: function() { return this.%5$s; }, \r\n";
+                                        pf = vsprintf("%1$s: null,\r\n", [varName]);
+                                        break;
+                                }
+
+                                fargs = [null, name, name, 'set', 'get', varName];
+
+                                switch (type)
+                                {
+                                    case this.TYPE_CAMEL:
+                                        fargs[2] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        break;
+
+                                    case this.TYPE_UNDER:
+                                        fargs[3] = "set_";
+                                        fargs[4] = "get_";
+                                        break;
+
+                                    case this.TYPE_PASCAL:
+                                        fargs[2] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        fargs[3] = "Set";
+                                        fargs[4] = "Get";
+                                        break;
+                                }
+
+                                switch (proppos)
+                                {
+                                    case this.PROP_SEPERATE:
+                                        arr2[arr2.length] = pf;
+                                        f = rf;
+                                        break;
+                                    case this.PROP_ABOVE:
+                                        f = pf + rf;
+                                        break;
+                                    case this.PROP_BELOW:
+                                        f = rf + pf;
+                                        break;
+                                }
+                                break;
+
+                            case this.LANG_CSHARP:
+                                var rf = "public %2$s %1$s { get { return %3$s; } set { %3$s = value; } }\r\n";
+
+                                switch (proppos)
+                                {
+                                    case this.PROP_SEPERATE:
+                                        f = rf;
+                                        break;
+                                    case this.PROP_ABOVE:
+                                        f = "%4$s %2$s %3$s;\r\n" + rf;
+                                        break;
+                                    case this.PROP_BELOW:
+                                        f = rf + "%4$s %2$s %3$s;\r\n";
+                                        break;
+                                }
+
+                                var varType = args[1] != undefined && args[1] != '' ? args[1] : SG_GetDefType().value;
+                                var access = args[2] != undefined && args[2] != '' ? args[2] : SG_CurAccess();
+                                var varName = args[3] != undefined && args[3] != '' ? args[3] : '_' + name;
+
+                                switch (varType)
+                                {
+                                    case 's'	:
+                                    case 'str':
+                                        varType = 'string';
+                                        break;
+                                    case 'i':
+                                        varType = 'int';
+                                        break;
+                                    case 'b':
+                                        varType = 'bool';
+                                        break;
+                                    case 'f':
+                                        varType = 'float';
+                                        break;
+                                }
+
+                                fargs = [null, name, varType, varName, access];
+
+                                switch (access)
+                                {
+                                    case this.ACCESS_PRO:
+                                        fargs[4] = 'protected';
+                                        break;
+                                    case this.ACCESS_PRI:
+                                        fargs[4] = 'private';
+                                        break;
+                                    default:
+                                        fargs[4] = 'private';
+                                        break;
+                                }
+
+                                switch (proppos)
+                                {
+                                    case this.PROP_SEPERATE:
+                                        arr2[arr2.length] = fargs[4] + " " + fargs[2] + " " + fargs[3] + ";\r\n";
+                                        break;
+                                }
+
+                                switch (type)
+                                {
+                                    case this.TYPE_CAMEL:
+                                        break;
+
+                                    case this.TYPE_UNDER:
+                                        break;
+
+                                    case this.TYPE_PASCAL:
+                                        fargs[1] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        break;
+                                }
+                                break;
+
+                            case this.LANG_CPLUSPLUS:
+                                f = "void %4$s%2$s(%3$s %1$s) { this->%6$s = %1$s; } \r\n" +
+                                        "%3$s %5$s%2$s() { return this->%6$s; }\r\n";
+
+                                var varType = args[1] != undefined && args[1] != '' ? args[1] : SG_GetDefType().value;
+                                var access = args[2] != undefined && args[2] != '' ? args[2] : SG_CurAccess();
+                                var varName = args[3] != undefined && args[3] != '' ? args[3] : name;
+
+                                switch (varType)
+                                {
+                                    case 's'	:
+                                    case 'str':
+                                        varType = 'string';
+                                        break;
+                                    case 'i':
+                                        varType = 'int';
+                                        break;
+                                    case 'b':
+                                        varType = 'bool';
+                                        break;
+                                    case 'f':
+                                        varType = 'float';
+                                        break;
+                                }
+
+                                switch (access)
+                                {
+                                    case this.ACCESS_PRO:
+                                        arr3[arr3.length] = varType + ' ' + varName + ";\r\n";
+                                        break;
+                                    case this.ACCESS_PRI:
+                                    default:
+                                        arr2[arr2.length] = varType + ' ' + varName + ";\r\n";
+                                        break;
+                                }
+
+                                fargs = [null, name, name, varType, 'set', 'get', varName];
+
+                                switch (type)
+                                {
+                                    case this.TYPE_CAMEL:
+                                        fargs[2] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        break;
+
+                                    case this.TYPE_UNDER:
+                                        fargs[4] = 'set_';
+                                        fargs[5] = 'get_';
+                                        break;
+
+                                    case this.TYPE_PASCAL:
+                                        fargs[4] = 'Set';
+                                        fargs[5] = 'Get';
+                                        fargs[2] = name.substr(0, 1).toUpperCase() + name.substr(1);
+                                        break;
+                                }
+                                break;
+                        }
+
+                        fargs.shift();
+                        arr[arr.length] = vsprintf(f, fargs);
+                    }
+
+                    switch (lang)
+                    {
+                        case this.LANG_CPLUSPLUS:
+                            var res = [];
+                            if (arr2.length > 1 && arr3.length > 1) {
+                                arr2[arr2.length] = "\r\n";
+                                arr3[arr3.length] = "\r\n";
+                                res = arr2.concat(arr3, arr);
+                            } else if (arr2.length > 1) {
+                                arr2[arr2.length] = "\r\n";
+                                res = arr2.concat(arr);
+                            } else if (arr3.length > 1) {
+                                arr3[arr3.length] = "\r\n";
+                                res = arr3.concat(arr);
+                            }
+                            SG_GetRes().value = res.join("");
+                            break;
+
+                        case this.LANG_JS:
+                        case this.LANG_PHP:
+                        case this.LANG_CSHARP:
+                            switch (proppos)
+                            {
+                                case this.PROP_SEPERATE:
+                                    arr2[arr2.length] = "\r\n";
+                                    res = arr2.concat(arr);
+                                    break;
+                                default:
+                                    res = arr;
+                                    break;
+                            }
+                            SG_GetRes().value = res.join("");
+                            break;
+                        default:
+                            SG_GetRes().value = arr.join("");
+                            break;
+                    }
+                },
+                example: function (newVal) {
+                    if (newVal != undefined) {
+                        this.isExample = newVal;
+                    } else {
+                        return this.isExample;
+                    }
+                },
+                changeExample: function ()
+                {
+                    var lang = parseInt(SG_CurLang());
+
+                    this.example(true);
+
+                    switch (lang)
+                    {
+                        case this.LANG_PHP:
+                            SG_GetInp().value = "foo\r\nbar";
+                            SG_GetTypeRow().className = "";
+                            SG_GetDefTypeRow().className = "hidden";
+                            SG_GetModeRow().className = "hidden";
+                            SG_GetAccessRow().className = "";
+                            SG_GetPropPositionRow().className = "";
+                            SG_GetArgsList().innerHTML =
+                                    '<li>Property name <b>(required)</b></li>' +
+                                    '<li>Access level - pro (protected) or pri (private)</li>' +
+                                    '<li>Variable name - let the methods point to a different variable</li>';
+                            break;
+
+                        case this.LANG_JS:
+                            SG_GetInp().value = "foo\r\nbar";
+                            SG_GetTypeRow().className = "";
+                            SG_GetDefTypeRow().className = "hidden";
+                            SG_GetModeRow().className = "";
+                            SG_GetAccessRow().className = "hidden";
+                            SG_GetPropPositionRow().className = "";
+                            SG_GetArgsList().innerHTML =
+                                    '<li>Property name <b>(required)</b></li>' +
+                                    '<li>Variable name - let the methods point to a different variable</li>';
+                            break;
+
+                        case this.LANG_CSHARP:
+                            SG_GetInp().value = "foo\r\nbar";
+                            SG_GetTypeRow().className = "";
+                            SG_GetDefTypeRow().className = "";
+                            SG_GetModeRow().className = "hidden";
+                            SG_GetAccessRow().className = "";
+                            SG_GetPropPositionRow().className = "";
+                            SG_GetArgsList().innerHTML =
+                                    '<li>Property name <b>(required)</b></li>' +
+                                    '<li>Property type (if not specified then the default type is used)</li>' +
+                                    '<li>Access level - pro (protected) or pri (private)</li>' +
+                                    '<li>Variable name - let the methods point to a different variable</li>';
+                            break;
+
+                        case this.LANG_CPLUSPLUS:
+                            SG_GetInp().value = "foo\r\nbar";
+                            SG_GetTypeRow().className = "";
+                            SG_GetDefTypeRow().className = "";
+                            SG_GetModeRow().className = "hidden";
+                            SG_GetAccessRow().className = "";
+                            SG_GetPropPositionRow().className = "hidden";
+                            SG_GetArgsList().innerHTML =
+                                    '<li>Property name <b>(required)</b></li>' +
+                                    '<li>Property type (if not specified then the default type is used)</li>' +
+                                    '<li>Access level - pro (protected) or pri (private)</li>' +
+                                    '<li>Variable name - let the methods point to a different variable</li>';
+                            break;
+                    }
+                    SetterGetter.generate();
+                }
+            }
+
+            function SG_GetDefTypeRow() {
+                return document.getElementById('SGFormDefTypeRow');
+            }
+            function SG_GetTypeRow() {
+                return document.getElementById('SGFormTypeRow');
+            }
+            function SG_GetModeRow() {
+                return document.getElementById('SGFormModeRow');
+            }
+            function SG_GetAccessRow() {
+                return document.getElementById('SGFormAccessRow');
+            }
+            function SG_GetPropPositionRow() {
+                return document.getElementById('SGFormPropPositionRow');
+            }
+
+            function SG_GetRes() {
+                return document.getElementById('SGFormResult');
+            }
+            function SG_GetInp() {
+                return document.getElementById('SGFormInput');
+            }
+            function SG_GetType() {
+                return document.getElementById('SGFormType');
+            }
+            function SG_CurType(type)
+            {
+                if (type != undefined) {
+                    SG_SelValue(SG_CurType(), type);
+                } else {
+                    return SG_CurValue(SG_GetType());
+                }
+            }
+            function SG_GetLang() {
+                return document.getElementById('SGFormLang');
+            }
+            function SG_CurLang(lang)
+            {
+                if (lang != undefined) {
+                    SG_SelValue(SG_CurLang(), lang);
+                } else {
+                    return SG_CurValue(SG_GetLang());
+                }
+            }
+            function SG_GetMode() {
+                return document.getElementById('SGFormMode');
+            }
+            function SG_CurMode(mode)
+            {
+                if (mode != undefined) {
+                    SG_SelValue(SG_CurMode(), mode);
+                } else {
+                    return SG_CurValue(SG_GetMode());
+                }
+            }
+            function SG_GetDefType() {
+                return document.getElementById('SGFormDefType');
+            }
+            function SG_GetArgsList() {
+                return document.getElementById('SGFormArgsList');
+            }
+            function SG_GetAccess() {
+                return document.getElementById('SGFormAccess');
+            }
+            function SG_CurAccess(access)
+            {
+                if (access != undefined) {
+                    SG_SelValue(SG_CurAccess(), access);
+                } else {
+                    return SG_CurValue(SG_GetAccess());
+                }
+            }
+            function SG_GetPropPosition() {
+                return document.getElementById('SGFormPropPosition');
+            }
+            function SG_CurPropPosition(pos)
+            {
+                if (pos != undefined) {
+                    SG_SelValue(SG_CurPropPosition(), pos);
+                } else {
+                    return SG_CurValue(SG_GetPropPosition());
+                }
+            }
+
+            function SG_CurValue(e) {
+                return e.options[e.selectedIndex].value;
+            }
+
+            function SG_SelValue(e, v) {
+                for (var i = 0; i < e.options.length; i++)
+                {
+                    var curOpt = e.options[i];
+                    if (curOpt.value == v)
+                    {
+                        curOpt.selected = true;
+                    }
+                    else
+                    {
+                        curOpt.selected = false;
+                    }
+                }
+            }
+
+
+            /* phpjs.org */
+
+            function vsprintf(format, args) {
+                // http://kevin.vanzonneveld.net
+                // +   original by: ejsanders
+                // -    depends on: sprintf
+                // *     example 1: vsprintf('%04d-%02d-%02d', [1988, 8, 1]);
+                // *     returns 1: '1988-08-01'
+
+                return this.sprintf.apply(this, [format].concat(args));
+            }
+
+            function sprintf( ) {
+                // http://kevin.vanzonneveld.net
+                // +   original by: Ash Searle (http://hexmen.com/blog/)
+                // + namespaced by: Michael White (http://getsprink.com)
+                // +    tweaked by: Jack
+                // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+                // +      input by: Paulo Freitas
+                // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+                // +      input by: Brett Zamir (http://brett-zamir.me)
+                // +   improved by: Kevin van Zonneveld (http://kevin.vanzonneveld.net)
+                // *     example 1: sprintf("%01.2f", 123.1);
+                // *     returns 1: 123.10
+                // *     example 2: sprintf("[%10s]", 'monkey');
+                // *     returns 2: '[    monkey]'
+                // *     example 3: sprintf("[%'#10s]", 'monkey');
+                // *     returns 3: '[####monkey]'
+
+                var regex = /%%|%(\d+\$)?([-+\'#0 ]*)(\*\d+\$|\*|\d+)?(\.(\*\d+\$|\*|\d+))?([scboxXuidfegEG])/g;
+                var a = arguments, i = 0, format = a[i++];
+
+                // pad()
+                var pad = function (str, len, chr, leftJustify) {
+                    if (!chr) {
+                        chr = ' ';
+                    }
+                    var padding = (str.length >= len) ? '' : Array(1 + len - str.length >>> 0).join(chr);
+                    return leftJustify ? str + padding : padding + str;
+                };
+
+                // justify()
+                var justify = function (value, prefix, leftJustify, minWidth, zeroPad, customPadChar) {
+                    var diff = minWidth - value.length;
+                    if (diff > 0) {
+                        if (leftJustify || !zeroPad) {
+                            value = pad(value, minWidth, customPadChar, leftJustify);
+                        } else {
+                            value = value.slice(0, prefix.length) + pad('', diff, '0', true) + value.slice(prefix.length);
+                        }
+                    }
+                    return value;
+                };
+
+                // formatBaseX()
+                var formatBaseX = function (value, base, prefix, leftJustify, minWidth, precision, zeroPad) {
+                    // Note: casts negative numbers to positive ones
+                    var number = value >>> 0;
+                    prefix = prefix && number && {'2': '0b', '8': '0', '16': '0x'}[base] || '';
+                    value = prefix + pad(number.toString(base), precision || 0, '0', false);
+                    return justify(value, prefix, leftJustify, minWidth, zeroPad);
+                };
+
+                // formatString()
+                var formatString = function (value, leftJustify, minWidth, precision, zeroPad, customPadChar) {
+                    if (precision != null) {
+                        value = value.slice(0, precision);
+                    }
+                    return justify(value, '', leftJustify, minWidth, zeroPad, customPadChar);
+                };
+
+                // doFormat()
+                var doFormat = function (substring, valueIndex, flags, minWidth, _, precision, type) {
+                    var number;
+                    var prefix;
+                    var method;
+                    var textTransform;
+                    var value;
+
+                    if (substring == '%%') {
+                        return '%';
+                    }
+
+                    // parse flags
+                    var leftJustify = false, positivePrefix = '', zeroPad = false, prefixBaseX = false, customPadChar = ' ';
+                    var flagsl = flags.length;
+                    for (var j = 0; flags && j < flagsl; j++) {
+                        switch (flags.charAt(j)) {
+                            case ' ':
+                                positivePrefix = ' ';
+                                break;
+                            case '+':
+                                positivePrefix = '+';
+                                break;
+                            case '-':
+                                leftJustify = true;
+                                break;
+                            case "'":
+                                customPadChar = flags.charAt(j + 1);
+                                break;
+                            case '0':
+                                zeroPad = true;
+                                break;
+                            case '#':
+                                prefixBaseX = true;
+                                break;
+                        }
+                    }
+
+                    // parameters may be null, undefined, empty-string or real valued
+                    // we want to ignore null, undefined and empty-string values
+                    if (!minWidth) {
+                        minWidth = 0;
+                    } else if (minWidth == '*') {
+                        minWidth = +a[i++];
+                    } else if (minWidth.charAt(0) == '*') {
+                        minWidth = +a[minWidth.slice(1, -1)];
+                    } else {
+                        minWidth = +minWidth;
+                    }
+
+                    // Note: undocumented perl feature:
+                    if (minWidth < 0) {
+                        minWidth = -minWidth;
+                        leftJustify = true;
+                    }
+
+                    if (!isFinite(minWidth)) {
+                        throw new Error('sprintf: (minimum-)width must be finite');
+                    }
+
+                    if (!precision) {
+                        precision = 'fFeE'.indexOf(type) > -1 ? 6 : (type == 'd') ? 0 : undefined;
+                    } else if (precision == '*') {
+                        precision = +a[i++];
+                    } else if (precision.charAt(0) == '*') {
+                        precision = +a[precision.slice(1, -1)];
+                    } else {
+                        precision = +precision;
+                    }
+
+                    // grab value using valueIndex if required?
+                    value = valueIndex ? a[valueIndex.slice(0, -1)] : a[i++];
+
+                    switch (type) {
+                        case 's':
+                            return formatString(String(value), leftJustify, minWidth, precision, zeroPad, customPadChar);
+                        case 'c':
+                            return formatString(String.fromCharCode(+value), leftJustify, minWidth, precision, zeroPad);
+                        case 'b':
+                            return formatBaseX(value, 2, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
+                        case 'o':
+                            return formatBaseX(value, 8, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
+                        case 'x':
+                            return formatBaseX(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
+                        case 'X':
+                            return formatBaseX(value, 16, prefixBaseX, leftJustify, minWidth, precision, zeroPad).toUpperCase();
+                        case 'u':
+                            return formatBaseX(value, 10, prefixBaseX, leftJustify, minWidth, precision, zeroPad);
+                        case 'i':
+                        case 'd':
+                            number = parseInt(+value, 10);
+                            prefix = number < 0 ? '-' : positivePrefix;
+                            value = prefix + pad(String(Math.abs(number)), precision, '0', false);
+                            return justify(value, prefix, leftJustify, minWidth, zeroPad);
+                        case 'e':
+                        case 'E':
+                        case 'f':
+                        case 'F':
+                        case 'g':
+                        case 'G':
+                            number = +value;
+                            prefix = number < 0 ? '-' : positivePrefix;
+                            method = ['toExponential', 'toFixed', 'toPrecision']['efg'.indexOf(type.toLowerCase())];
+                            textTransform = ['toString', 'toUpperCase']['eEfFgG'.indexOf(type) % 2];
+                            value = prefix + Math.abs(number)[method](precision);
+                            return justify(value, prefix, leftJustify, minWidth, zeroPad)[textTransform]();
+                        default:
+                            return substring;
+                    }
+                };
+
+                return format.replace(regex, doFormat);
+            }
+
+            SetterGetter.changeExample();
+        </script>
+
+    </body>
+</html>
